@@ -1,0 +1,66 @@
+html,
+body {
+  background: #d3d3d3;
+  color: black;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+input {
+  color: black;
+}
+
+#controls {
+  display: flex;
+  flex-direction: row;
+  padding: 2px;
+  justify-content: space-evenly;
+}
+
+#controls > button {
+  background: none;
+  border: none;
+}
+
+#controls > button:hover {
+  background: #e1e1e1;
+  border-top: 1px solid #d0d0d0;
+}
+
+#controls > #menu {
+  margin-left: auto;
+}
+
+#controls > #addressbar {
+  width: 100%;
+  box-sizing: border-box;
+  color: black;
+  background-color: lightgrey;
+}
+
+#controls {
+  display: flex;
+  flex-direction: row;
+  padding: 2px;
+  justify-content: space-evenly;
+}
+
+#controls > button {
+  background: none;
+  border: none;
+}
+
+#controls > button:hover {
+  background: #e1e1e1;
+  border-top: 1px solid #d0d0d0;
+}
+
+#controls > #addressbar {
+  width: 100%;
+  box-sizing: border-box;
+  color: black;
+  background-color: lightgrey;
+}

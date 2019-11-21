@@ -1,0 +1,10 @@
+body {
+    color: black;
+    background-color: lightgrey;
+}
+
+#side_bar {
+    padding: 2px;
+    color: black;
+    background-color: lightgrey;
+}

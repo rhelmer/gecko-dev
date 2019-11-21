@@ -36,6 +36,7 @@ if CONFIG['MAKENSISU']:
 
 TEST_DIRS += [
     'tools/mozscreenshots',
+    'tools/devbrowser',
 ]
 
 DIST_SUBDIR = 'browser'

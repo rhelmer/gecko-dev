@@ -1,0 +1,13 @@
+body {
+    color: black;
+    background-color: lightgrey;
+}
+
+#status_bar {
+    color: black;
+    background-color: lightgrey;
+}
+
+input, button {
+    color: black;
+}

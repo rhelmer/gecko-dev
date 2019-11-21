@@ -824,6 +824,7 @@ class RunProgram(MachCommandBase):
     def run(self, **kwargs):
         if conditions.is_android(self):
             return self._run_android(**kwargs)
+        kwargs['devbrowser'] = False
         return self._run_desktop(**kwargs)
 
     def _run_android(self, app='org.mozilla.geckoview_example', intent=None, env=[], profile=None,
@@ -908,7 +909,7 @@ class RunProgram(MachCommandBase):
 
     def _run_desktop(self, params, remote, background, noprofile, disable_e10s,
                      enable_crash_reporter, setpref, temp_profile, macos_open, debug, debugger,
-                     debugger_args, dmd, mode, stacks, show_dump_stats):
+                     debugger_args, dmd, mode, stacks, show_dump_stats, devbrowser):
         from mozprofile import Profile, Preferences
 
         try:
@@ -920,6 +921,7 @@ class RunProgram(MachCommandBase):
             return 1
 
         args = []
+
         if macos_open:
             if debug:
                 print("The browser can not be launched in the debugger "
@@ -936,6 +938,10 @@ class RunProgram(MachCommandBase):
                 return 1
         else:
             args = [binpath]
+
+        if devbrowser:
+            args.append('--chrome')
+            args.append('chrome://devbrowser/content/devbrowser.xhtml')
 
         if params:
             args.extend(params)
@@ -1620,3 +1626,15 @@ class L10NCommands(MachCommandBase):
                 cwd=mozpath.join(self.topsrcdir))
 
         return 0
+
+@CommandProvider
+class DevBrowser(RunProgram):
+    @Command('devbrowser', category='post-build',
+             conditions=[conditions.has_build],
+             parser=setup_run_parser,
+             description='Run the compiled program in devbrowser mode, possibly under a debugger or DMD.')
+
+    def run(self, **kwargs):
+        kwargs['devbrowser'] = True
+        return self._run_desktop(**kwargs)
+

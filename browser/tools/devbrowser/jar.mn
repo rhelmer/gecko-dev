@@ -1,0 +1,34 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#ifdef NIGHTLY_BUILD
+browser.jar:
+%  content devbrowser %content/devbrowser/
+   content/devbrowser/devbrowser.xhtml                      (content/devbrowser.xhtml)
+   content/devbrowser/devbrowser.css                        (content/devbrowser.css)
+   content/devbrowser/devbrowser.js                         (content/devbrowser.js)
+
+   content/devbrowser/components/browserControls.xhtml      (content/components/browserControls.xhtml)
+   content/devbrowser/components/browserControls.css        (content/components/browserControls.css)
+   content/devbrowser/components/browserControls.js         (content/components/browserControls.js)
+
+   content/devbrowser/components/statusBar.xhtml            (content/components/statusBar.xhtml)
+   content/devbrowser/components/statusBar.css              (content/components/statusBar.css)
+   content/devbrowser/components/statusBar.js               (content/components/statusBar.js)
+
+   content/devbrowser/components/sideBar.xhtml              (content/components/sideBar.xhtml)
+   content/devbrowser/components/sideBar.css                (content/components/sideBar.css)
+   content/devbrowser/components/sideBar.js                 (content/components/sideBar.js)
+
+   content/devbrowser/components/home.xhtml                 (content/components/home.xhtml)
+   content/devbrowser/components/home.css                   (content/components/home.css)
+   content/devbrowser/components/home.js                    (content/components/home.js)
+
+   content/devbrowser/components/assets/back.svg            (content/components/assets/back.svg)
+   content/devbrowser/components/assets/forward.svg         (content/components/assets/forward.svg)
+   content/devbrowser/components/assets/reload.svg          (content/components/assets/reload.svg)
+   content/devbrowser/components/assets/stop.svg            (content/components/assets/stop.svg)
+   content/devbrowser/components/assets/menu.svg            (content/components/assets/menu.svg)
+   content/devbrowser/components/assets/sidebars.svg        (content/components/assets/sidebars.svg)
+#endif

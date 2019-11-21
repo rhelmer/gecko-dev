@@ -1,0 +1,19 @@
+body {
+    color: white;
+    background: rgb(19, 8, 41);
+}
+
+input {
+    height: 30px;
+    width: 400px;
+    margin: 20px;
+    color: black;
+    font-size: 150%;
+    font-weight: 1000;
+}
+
+button {
+    font-size: 120%;
+    height: 50px;
+    width: 200px;
+}

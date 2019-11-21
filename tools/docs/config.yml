@@ -5,6 +5,7 @@
 categories:
     source_doc:
         - browser
+        - browser/tools/devbrowser/docs/index
         - dom
         - gfx
         - devtools
