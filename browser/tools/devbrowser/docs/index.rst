@@ -42,8 +42,8 @@ Main Window:
 
 Browser Components:
     The UI that the user interacts with, such as the back button and the address bar.
-    Each componebnt is loaded into its own remote content-privileged process. The main
-    thread of each componebnt is *only* for user interaction. WASM and JS modules may be
+    Each component is loaded into its own remote content-privileged process. The main
+    thread of each component is *only* for user interaction. WASM and JS modules may be
     loaded and run in workers, but they *cannot synchronously interact with the UI*.
 
 Browser Services (aka Main Process):
