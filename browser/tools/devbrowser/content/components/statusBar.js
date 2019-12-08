@@ -38,7 +38,9 @@ class StatusBar {
       const escapeKey = 27;
 
       if (event.keyCode == returnKey) {
-        messageManager.sendAsyncMessage(`statusBar:searchText`, {searchText: event.target.value});
+        messageManager.sendAsyncMessage(`statusBar:searchText`, {
+          searchText: event.target.value,
+        });
       } else if (event.keyCode == escapeKey) {
         messageManager.sendAsyncMessage("statusBar:hide");
       }

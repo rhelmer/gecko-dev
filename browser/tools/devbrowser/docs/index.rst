@@ -10,13 +10,14 @@ devbrowser is a minimal web browser for desktop platforms. It is intended for:
 ..image:: images/screenshot-google.png
 
 Design and Architecture
+=======================
 
 devbrowser supports two models:
 
 1. Single-process
 
-This is not the default, and the `browser.tabs.remote.autostart` and
-`fission.autostart` prefs must be se to `false` (see the Running section below).
+This is not the default, and the `--disable-e10s` argument must
+be passed to `mach devbrowser` (see the Running section below).
 
 Single-process mode runs both the privileged and web content code in the same
 process, to ease platform debugging. This is not an officially supported
@@ -42,8 +43,8 @@ Main Window:
 
 Browser Components:
     The UI that the user interacts with, such as the back button and the address bar.
-    Each component is loaded into its own remote content-privileged process. The main
-    thread of each component is *only* for user interaction. WASM and JS modules may be
+    Each componebnt is loaded into its own remote content-privileged process. The main
+    thread of each componebnt is *only* for user interaction. WASM and JS modules may be
     loaded and run in workers, but they *cannot synchronously interact with the UI*.
 
 Browser Services (aka Main Process):
@@ -107,6 +108,13 @@ The MainWindow creates 4 remote content processes, but not with chrome privilege
 Finally, Browser Components are loaded into each of these.
 
 Running
+=======
+
+Running in single-process mode:
+  ./mach devbrowser --disable-e10s --setpref browser.tabs.remote.autostart=false --temp-profile
+
+Running in multi-process mode (the default):
+  ./mach devbrowser --temp-profile
 
 Other helpful flags are `--jsdebugger` to automatically open DevTools on initial load,
 or `--start-debugger-server` to start a debugger server for use with a remote DevTools

@@ -13,52 +13,105 @@ XPCOMUtils.defineLazyGetter(this, "gSystemPrincipal", () =>
 
 class MainWindow {
   constructor() {
-    const browserContent = document.getElementById("browser_content");
-    browserContent.loadend = this.addListeners();
-  }
+    const remote = Services.prefs.getBoolPref(
+      "browser.tabs.remote.autostart",
+      true
+    );
 
-  static restart() {
-    Services.obs.notifyObservers(null, "startupcache-invalidate");
-    window.location.reload();
+    this.browserControls = new Browser(
+      "browser_controls",
+      remote,
+      "chrome://devbrowser/content/components/browserControls.xhtml",
+      "browser_controls_container"
+    );
+
+    this.sideBar = new Browser(
+      "browser_sidebar",
+      remote,
+      "chrome://devbrowser/content/components/sideBar.xhtml",
+      "browser_sidebar_container"
+    );
+    this.showSidebar = false;
+
+    this.statusBar = new Browser(
+      "browser_statusbar",
+      remote,
+      "chrome://devbrowser/content/components/statusBar.xhtml",
+      "browser_statusbar_container"
+    );
+
+    this.browserContent = new Browser(
+      "browser_content",
+      remote,
+      "https://example.com",
+      "browser_content_container"
+    );
+
+    this.privilegedContent = new Browser(
+      "privileged_content",
+      false,
+      "about:about",
+      "browser_privileged_container"
+    );
+
+    this.addListeners();
   }
 
   addListeners() {
-    const browserContent = document.getElementById("browser_content");
+    window.openContextMenu = () => {
+      console.log("context menu open");
+    };
+
     Services.ppmm.addMessageListener("browser:loadURI", event => {
       // NOTE user input
       let url;
-
       try {
         url = new URL(event.data.url);
-      } catch (e) {
+      } catch (ex) {
         console.error(`DevBrowser: could not parse URL ${event}`);
-        throw e;
+        throw ex;
       }
 
+      const browser_content = document.getElementById("browser_content");
+      const privileged_content = document.getElementById("privileged_content");
+
       if (url.protocol == "about:") {
-        browserContent.src = event.data.url;
-        Services.ppmm.addMessageListener("browser:loadURI");
+        document.getElementById("browser_content_container").style =
+          "visibility: hidden; display:none";
+        document.getElementById("browser_privileged_container").style =
+          "visibility: visible; display:block";
+
+        privileged_content.loadURI(event.data.url, {
+          triggeringPrincipal: gSystemPrincipal,
+        });
       } else if (url.protocol == "https:" || url.protocol == "http:") {
-        browserContent.src = event.data.url;
+        document.getElementById("browser_content_container").style =
+          "visibility: visible; display:block";
+        document.getElementById("browser_privileged_container").style =
+          "visibility: hidden; display:none";
+
+        browser_content.loadURI(event.data.url, {
+          triggeringPrincipal: gSystemPrincipal,
+        });
       } else {
         throw new Error(`DevBrowser: unknown protocol ${url.protocol}`);
       }
     });
 
     Services.ppmm.addMessageListener("browser:goBack", () => {
-      browserContent.goBack();
+      document.getElementById("browser_content").goBack();
     });
 
     Services.ppmm.addMessageListener("browser:goForward", () => {
-      browserContent.goForward();
+      document.getElementById("browser_content").goForward();
     });
 
     Services.ppmm.addMessageListener("browser:stop", () => {
-      browserContent.stop();
+      document.getElementById("browser_content").stop();
     });
 
     Services.ppmm.addMessageListener("browser:reload", () => {
-      browserContent.reload();
+      document.getElementById("browser_content").reload();
     });
 
     Services.ppmm.addMessageListener("browser:sidebar", () => {
@@ -82,38 +135,23 @@ class MainWindow {
       document.getElementById("browser_content_container").style = "bottom: 0";
     });
 
-    Services.ppmm.addMessageListener(`browser:search`, event => {
+    Services.ppmm.addMessageListener("browser:search", event => {
       // FIXME validate user input!
       const searchText = event.data.searchText;
-      //console.debug(document, browserContent);
-      browserContent.src = `https://searchfox.org/mozilla-central/search?q=${searchText}`;
+      document
+        .getElementById("browser_content")
+        .loadURI(
+          `https://searchfox.org/mozilla-central/search?q=${searchText}`,
+          {
+            triggeringPrincipal: gSystemPrincipal,
+          }
+        );
     });
 
     Services.ppmm.addMessageListener("statusBar:searchText", event => {
       // FIXME validate user input!
       const searchText = event.data.searchText;
-      browserContent.finder.findAgain(searchText);
-    });
-
-    Services.ppmm.addMessageListener("browser:goBack", () => {
-      document.getElementById("browser_content").goBack();
-    });
-
-    Services.ppmm.addMessageListener("browser:goForward", () => {
-      document.getElementById("browser_content").goForward();
-    });
-
-    Services.ppmm.addMessageListener("browser:stop", () => {
-      document.getElementById("browser_content").stop();
-    });
-
-    Services.ppmm.addMessageListener("browser:reload", () => {
-      document.getElementById("browser_content").reload();
-    });
-
-    Services.ppmm.addMessageListener("statusBar:hide", () => {
-      document.getElementById("browser_statusbar_container").style =
-        "visibility: hidden; display: none;";
+      document.getElementById("browser_content").finder.findAgain(searchText);
     });
 
     let metaDown = false;
@@ -141,11 +179,11 @@ class MainWindow {
       }
 
       if (event.keyCode == backArrow && metaDown) {
-        browserContent.goBack();
+        document.getElementById("browser_content").goBack();
       }
 
       if (event.keyCode == forwardArrow && metaDown) {
-        browserContent.goForward();
+        document.getElementById("browser_content").goForward();
       }
     });
 
@@ -155,22 +193,28 @@ class MainWindow {
       }
     });
   }
+
+  static restart() {
+    Services.obs.notifyObservers(null, "startupcache-invalidate");
+    window.location.reload();
+  }
 }
 
 /**
- * Base class for ActorParents below.
+ * Creates a local or remote browser.
  */
-class ActorParent {
-  constructor(id, container, remote, url) {
-    console.debug("ActorParent initialized:", id, container, remote, url);
+class Browser {
+  constructor(id, remote, url, container) {
+    console.debug("Browser initialized:", id, remote, url, container);
 
     const browser = document.createXULElement("browser");
     browser.setAttribute("id", id);
     browser.setAttribute("type", "content");
     browser.setAttribute("remote", remote);
-    document.getElementById(container).appendChild(browser);
 
-    browser.src = url;
+    document.getElementById(container).append(browser);
+
+    browser.loadURI(url, { triggeringPrincipal: gSystemPrincipal });
 
     this.id = id;
     this.browser = browser;
@@ -178,20 +222,8 @@ class ActorParent {
     window.openContextMenu = function() {};
 
     this.addListeners();
-  }
 
-  addListeners() {}
-}
-
-class ControlsActorParent extends ActorParent {
-  constructor(...args) {
-    super(...args);
-  }
-}
-
-class ContentActorParent extends ActorParent {
-  constructor(...args) {
-    super(...args);
+    return browser;
   }
 
   addListeners() {
@@ -225,10 +257,10 @@ class ContentActorParent extends ActorParent {
           url: location.spec,
         });
 
-        document.getElementById("browser_controls_container").blur();
-        document.getElementById("browser_content_container").focus();
+        // FIXME this should be MainWindow's job now.
+        // document.getElementById("browser_controls_container").blur();
+        // document.getElementById("browser_content_container").focus();
       },
-      onLocationChange(webProgress, request, location, flags) {},
       onProgressChange(
         webProgress,
         request,
@@ -258,62 +290,22 @@ class ContentActorParent extends ActorParent {
       },
     };
 
-    let webProgress = window.docShell
-      .QueryInterface(Ci.nsIInterfaceRequestor)
-      .getInterface(Ci.nsIWebProgress);
-
-    webProgress.addProgressListener(
+    this.browser.addProgressListener(
       progressListener,
       Ci.nsIWebProgress.NOTIFY_ALL
     );
   }
 }
 
-class SidebarActorParent extends ActorParent {
-  constructor(...args) {
-    super(...args);
-  }
-}
-class StatusbarActorParent extends ActorParent {
-  constructor(...args) {
-    super(...args);
-  }
-}
-
-const remote = Services.prefs.getBoolPref(
-  "browser.tabs.remote.autostart",
-  true
-);
-
-new ContentActorParent(
-  "browser_content",
-  "browser_content_container",
-  remote,
-  "chrome://devbrowser/content/components/home.xhtml"
-);
-
-new ControlsActorParent(
-  "browser_controls",
-  "browser_controls_container",
-  remote,
-  "chrome://devbrowser/content/components/browserControls.xhtml"
-);
-new SidebarActorParent(
-  "browser_sidebar",
-  "browser_sidebar_container",
-  remote,
-  "chrome://devbrowser/content/components/sideBar.xhtml"
-);
-new StatusbarActorParent(
-  "browser_statusbar",
-  "browser_statusbar_container",
-  remote,
-  "chrome://devbrowser/content/components/statusBar.xhtml"
-);
-
 try {
-  const mainWindow = new MainWindow();
-  console.debug("MainWindow startup:", mainWindow);
+  window.addEventListener(
+    "DOMContentLoaded",
+    () => {
+      const result = new MainWindow();
+      console.log("MainWindow result:", result);
+    },
+    { once: true }
+  );
 } catch (e) {
   console.error("DevBrowser fatal error", e);
   throw e;

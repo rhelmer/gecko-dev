@@ -9,7 +9,7 @@ const { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 const messageManager = Services.cpmm;
 // FIXME end remove chrome dependency
 
-class ControlsActorChild {
+class BrowserControls {
   constructor() {
     this.controls = document.getElementById("controls");
     this.back = document.getElementById("back");
@@ -83,7 +83,7 @@ class ControlsActorChild {
 }
 
 try {
-  new ControlsActorChild();
+  new BrowserControls();
 } catch (e) {
   console.error(`Uncaught Browser Error: ${e}`);
   throw e;
